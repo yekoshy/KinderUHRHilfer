@@ -3,315 +3,311 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uhren-Meister - Lerne die Uhrzeit!</title>
+    <title>Uhren-Meister Zertifikat-Edition</title>
     <style>
         :root {
             --primary: #ff6b6b;
             --secondary: #4ecdc4;
             --accent: #ffe66d;
-            --bg: #f7f9fc;
+            --bg: #f0f4f8;
             --text: #2d3436;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             display: flex;
             flex-direction: column;
             align-items: center;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
         }
 
         .container {
             max-width: 600px;
-            width: 100%;
+            width: 95%;
             background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             text-align: center;
+            margin-top: 20px;
         }
 
-        h1 { color: var(--primary); margin-bottom: 10px; }
-        .level-info { font-weight: bold; color: var(--secondary); margin-bottom: 20px; }
-
-        /* Analoge Uhr Styling */
+        /* Analoge Uhr */
         #clock-container {
             position: relative;
-            width: 250px;
-            height: 250px;
-            border: 10px solid #333;
+            width: 220px;
+            height: 220px;
+            border: 8px solid #333;
             border-radius: 50%;
-            margin: 20px auto;
+            margin: 15px auto;
             background: white;
+            display: block;
         }
 
         .dot {
             position: absolute;
-            width: 12px;
-            height: 12px;
-            background: #333;
-            border-radius: 50%;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
+            width: 12px; height: 12px;
+            background: #333; border-radius: 50%;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
             z-index: 10;
         }
 
         .hand {
-            position: absolute;
-            bottom: 50%;
-            left: 50%;
-            transform-origin: bottom;
-            border-radius: 5px;
-            transition: transform 0.5s cubic-bezier(0.4, 2.08, 0.55, 0.44);
+            position: absolute; bottom: 50%; left: 50%;
+            transform-origin: bottom; border-radius: 5px;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .hour-hand { width: 6px; height: 60px; background: #333; z-index: 3; }
-        .min-hand { width: 4px; height: 90px; background: var(--primary); z-index: 2; }
+        .hour-hand { width: 6px; height: 55px; background: #333; z-index: 3; }
+        .min-hand { width: 4px; height: 85px; background: var(--primary); z-index: 2; }
 
         .number {
-            position: absolute;
-            font-weight: bold;
-            font-size: 1.2rem;
+            position: absolute; font-weight: bold; font-size: 1.1rem;
         }
 
-        /* Digital Uhr Styling */
+        /* Digital Uhr */
         #digital-display {
-            font-size: 3rem;
-            font-family: 'Courier New', Courier, monospace;
+            font-size: 2.5rem;
+            font-family: 'Courier New', monospace;
             background: #333;
             color: #0f0;
             padding: 10px 20px;
-            border-radius: 10px;
-            margin: 20px auto;
+            border-radius: 15px;
+            margin: 10px auto;
             display: inline-block;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
 
-        /* UI Elemente */
+        /* UI */
         .options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 20px;
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 12px; margin-top: 15px;
         }
 
         button {
-            padding: 15px;
-            font-size: 1.1rem;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            background: var(--secondary);
-            color: white;
-            transition: transform 0.1s, background 0.2s;
+            padding: 15px 10px; font-size: 1rem;
+            border: none; border-radius: 15px;
+            cursor: pointer; background: var(--secondary);
+            color: white; font-weight: bold;
+            box-shadow: 0 4px 0 #3dbbb3;
         }
 
-        button:hover { background: #3dbbb3; transform: scale(1.02); }
-        button:active { transform: scale(0.98); }
+        button:active { transform: translateY(3px); box-shadow: none; }
 
-        .feedback {
-            margin-top: 20px;
-            height: 60px;
-            font-weight: bold;
-            font-size: 1.2rem;
+        progress { width: 100%; height: 20px; accent-color: var(--secondary); }
+
+        .feedback { height: 40px; margin-top: 10px; font-weight: bold; font-size: 1.3rem; }
+
+        /* Zertifikat Style */
+        #certificate {
+            display: none;
+            background: #fff;
+            border: 10px double #d4af37;
+            padding: 40px;
+            border-radius: 0;
+            position: relative;
+            background-image: radial-gradient(circle, #fff9e6 10%, transparent 11%);
+            background-size: 20px 20px;
         }
 
-        .celebration { font-size: 3rem; position: fixed; pointer-events: none; }
+        .cert-title { color: #d4af37; font-size: 2.5rem; margin-bottom: 20px; }
+        .medal { font-size: 5rem; margin: 20px; }
 
-        .hidden { display: none; }
-
-        progress { width: 100%; height: 20px; border-radius: 10px; margin-bottom: 10px; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>🕒 Uhren-Meister</h1>
-        <div id="game-zone">
-            <div class="level-info" id="level-title">Level 1: Ganze Stunden</div>
-            <progress id="progress" value="0" max="12"></progress>
-            <p id="question-text">Wie viel Uhr ist es?</p>
+    <div class="container" id="main-game">
+        <h1 style="color:var(--primary); margin:0;">🕒 Uhren-Meister</h1>
+        <p id="level-title" style="font-weight:bold; color:var(--secondary);">Level 1</p>
+        <progress id="progress" value="0" max="12"></progress>
 
-            <div id="clock-container">
-                <div class="dot"></div>
-                <div id="hour-hand" class="hand hour-hand"></div>
-                <div id="min-hand" class="hand min-hand"></div>
-                <!-- Zahlen werden per JS eingefügt -->
-            </div>
-
-            <div id="digital-display" class="hidden">00:00</div>
-
-            <div class="options" id="options">
-                <!-- Buttons werden per JS eingefügt -->
-            </div>
-
-            <div class="feedback" id="feedback"></div>
+        <div id="clock-container">
+            <div class="dot"></div>
+            <div id="hour-hand" class="hand hour-hand"></div>
+            <div id="min-hand" class="hand min-hand"></div>
         </div>
 
-        <div id="win-screen" class="hidden">
-            <h2 style="color: var(--secondary)">🎉 Super gemacht!</h2>
-            <p>Du hast dieses Level gemeistert!</p>
-            <button onclick="nextLevel()">Nächstes Level starten</button>
-        </div>
+        <div id="digital-display">00:00</div>
+
+        <p id="question-text" style="font-size: 1.2rem;">Wie spät ist es?</p>
+
+        <div class="options" id="options"></div>
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <!-- Zertifikat -->
+    <div class="container" id="certificate">
+        <div class="cert-title">URKUNDE</div>
+        <p>Herzlichen Glückwunsch!</p>
+        <div class="medal">🏆</div>
+        <h2>Du bist ein Uhren-Meister!</h2>
+        <p>Du hast alle 7 Level bestanden und kannst jetzt perfekt die Uhr lesen.</p>
+        <p style="margin-top:40px; border-top: 2px solid #333; display:inline-block; padding-top:5px;">Unterschrift der Zeit-Fee</p>
     </div>
 
     <script>
         let currentLevel = 1;
         let currentExercise = 0;
-        let correctAnswers = 0;
+        const totalExercisesPerLevel = 12;
         let currentCorrectTime = "";
+        let currentH = 0;
+        let currentM = 0;
 
         const levels = [
-            { title: "Level 1: Ganze Stunden", type: "analog" },
-            { title: "Level 2: Halbe Stunden", type: "analog" },
-            { title: "Level 3: Minuten VOR halb", type: "analog" },
-            { title: "Level 4: Minuten NACH halb", type: "analog" },
-            { title: "Level 5: Digitaluhr lesen", type: "digital" }
+            { id: 1, title: "Level 1: Ganze Stunden", modes: [0] },
+            { id: 2, title: "Level 2: Halbe Stunden", modes: [30] },
+            { id: 3, title: "Level 3: Viertel vor & nach", modes: [15, 45] },
+            { id: 4, title: "Level 4: Zehn vor & nach", modes: [10, 50] },
+            { id: 5, title: "Level 5: Fünf vor & nach", modes: [5, 55] },
+            { id: 6, title: "Level 6: Digital-Profi (Text wählen)", modes: [0, 15, 30, 45], type: 'digiToText' },
+            { id: 7, title: "Level 7: Der Abschluss-Check (Zahlen wählen)", modes: [0, 5, 10, 15, 30, 45, 50, 55], type: 'anaToDigi' }
         ];
 
-        // Uhr-Zahlen erstellen
+        // Uhr initialisieren
         const clockContainer = document.getElementById('clock-container');
         for(let i = 1; i <= 12; i++) {
             const num = document.createElement('div');
             num.className = 'number';
             num.innerText = i;
             const angle = (i * 30) * (Math.PI / 180);
-            const x = 125 + 100 * Math.sin(angle) - 10;
-            const y = 125 - 100 * Math.cos(angle) - 15;
-            num.style.left = x + 'px';
-            num.style.top = y + 'px';
+            const x = 110 + 85 * Math.sin(angle) - 8;
+            const y = 110 - 85 * Math.cos(angle) - 10;
+            num.style.left = x + 'px'; num.style.top = y + 'px';
             clockContainer.appendChild(num);
         }
 
+        function getTimeText(h, m) {
+            if (m === 0) return h + " Uhr";
+            let nextH = h === 12 ? 1 : h + 1;
+            if (m === 30) return "Halb " + nextH;
+            if (m === 15) return "Viertel nach " + h;
+            if (m === 45) return "Viertel vor " + nextH;
+            if (m === 10) return "Zehn nach " + h;
+            if (m === 50) return "Zehn vor " + nextH;
+            if (m === 5) return "Fünf nach " + h;
+            if (m === 55) return "Fünf vor " + nextH;
+            return h + ":" + m;
+        }
+
+        function getDigitalString(h, m) {
+            return h.toString().padStart(2, '0') + ":" + m.toString().padStart(2, '0');
+        }
+
         function generateExercise() {
-            let hour = Math.floor(Math.random() * 12) + 1;
-            let minute = 0;
+            const config = levels[currentLevel-1];
+            document.getElementById('level-title').innerText = config.title;
             
-            if (currentLevel === 1) minute = 0;
-            else if (currentLevel === 2) minute = 30;
-            else if (currentLevel === 3) minute = Math.random() > 0.5 ? 20 : 25;
-            else if (currentLevel === 4) minute = Math.random() > 0.5 ? 35 : 40;
-            else if (currentLevel === 5) {
-                const types = [0, 30, 15, 45];
-                minute = types[Math.floor(Math.random() * types.length)];
-            }
+            currentH = Math.floor(Math.random() * 12) + 1;
+            currentM = config.modes[Math.floor(Math.random() * config.modes.length)];
 
-            setClock(hour, minute);
-            
-            const correctText = getTimeString(hour, minute);
-            currentCorrectTime = correctText;
-
-            // Optionen erstellen
-            let options = [correctText];
-            while(options.length < 4) {
-                let rHour = Math.floor(Math.random() * 12) + 1;
-                let rMin = [0, 30, 20, 40, 15][Math.floor(Math.random() * 5)];
-                let opt = getTimeString(rHour, rMin);
-                if(!options.includes(opt)) options.push(opt);
-            }
-            options.sort(() => Math.random() - 0.5);
+            updateClockUI(currentH, currentM);
 
             const optionsDiv = document.getElementById('options');
             optionsDiv.innerHTML = '';
-            options.forEach(opt => {
+            
+            let correct;
+            if(config.type === 'digiToText') {
+                correct = getTimeText(currentH, currentM);
+                document.getElementById('clock-container').style.display = 'none';
+            } else if (config.type === 'anaToDigi') {
+                correct = getDigitalString(currentH, currentM);
+                document.getElementById('clock-container').style.display = 'block';
+                document.getElementById('digital-display').style.visibility = 'hidden';
+            } else {
+                correct = getTimeText(currentH, currentM);
+                document.getElementById('clock-container').style.display = 'block';
+                document.getElementById('digital-display').style.visibility = 'visible';
+            }
+
+            currentCorrectTime = correct;
+            let choices = [correct];
+
+            while(choices.length < 4) {
+                let h = Math.floor(Math.random() * 12) + 1;
+                let m = config.modes[Math.floor(Math.random() * config.modes.length)];
+                let c = (config.type === 'anaToDigi') ? getDigitalString(h, m) : getTimeText(h, m);
+                if(!choices.includes(c)) choices.push(c);
+            }
+            choices.sort(() => Math.random() - 0.5);
+
+            choices.forEach(text => {
                 const btn = document.createElement('button');
-                btn.innerText = opt;
-                btn.onclick = () => checkAnswer(opt);
+                btn.innerText = text;
+                btn.onclick = () => checkAnswer(text);
                 optionsDiv.appendChild(btn);
             });
         }
 
-        function getTimeString(h, m) {
-            if (currentLevel === 5) return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} Uhr`;
-            
-            if (m === 0) return `${h} Uhr`;
-            if (m === 30) return `Halb ${h === 12 ? 1 : h + 1}`;
-            if (m === 20) return `Zehn vor halb ${h === 12 ? 1 : h + 1}`;
-            if (m === 25) return `Fünf vor halb ${h === 12 ? 1 : h + 1}`;
-            if (m === 35) return `Fünf nach halb ${h === 12 ? 1 : h + 1}`;
-            if (m === 40) return `Zehn nach halb ${h === 12 ? 1 : h + 1}`;
-            return `${h}:${m}`;
-        }
-
-        function setClock(h, m) {
+        function updateClockUI(h, m) {
             const hDeg = (h * 30) + (m * 0.5);
             const mDeg = m * 6;
             document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hDeg}deg)`;
             document.getElementById('min-hand').style.transform = `translateX(-50%) rotate(${mDeg}deg)`;
-            
-            if (currentLevel === 5) {
-                document.getElementById('clock-container').classList.add('hidden');
-                document.getElementById('digital-display').classList.remove('hidden');
-                document.getElementById('digital-display').innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-            } else {
-                document.getElementById('clock-container').classList.remove('hidden');
-                document.getElementById('digital-display').classList.add('hidden');
-            }
+            document.getElementById('digital-display').innerText = getDigitalString(h, m);
         }
 
         function checkAnswer(answer) {
             const feedback = document.getElementById('feedback');
-            if (answer === currentCorrectTime) {
-                feedback.innerHTML = "✅ Super! Richtig!";
-                feedback.style.color = "green";
+            if(answer === currentCorrectTime) {
+                feedback.innerHTML = "🌟 Super! Richtig!";
+                feedback.style.color = "#2ecc71";
                 celebrate();
-                correctAnswers++;
                 currentExercise++;
-                updateProgress();
+                document.getElementById('progress').value = currentExercise;
                 
-                if (currentExercise >= 12) {
-                    showWinScreen();
+                if(currentExercise >= totalExercisesPerLevel) {
+                    if(currentLevel < levels.length) {
+                        setTimeout(() => {
+                            currentLevel++;
+                            currentExercise = 0;
+                            document.getElementById('progress').value = 0;
+                            feedback.innerHTML = "Nächstes Level! 🚀";
+                            generateExercise();
+                        }, 1500);
+                    } else {
+                        showCertificate();
+                    }
                 } else {
-                    setTimeout(generateExercise, 1500);
+                    setTimeout(generateExercise, 1200);
                 }
             } else {
-                feedback.innerHTML = `❌ Oje! Das war: ${currentCorrectTime}`;
-                feedback.style.color = "red";
-                setTimeout(generateExercise, 2500);
+                feedback.innerHTML = `❌ Oje! Das ist: ${currentCorrectTime}`;
+                feedback.style.color = "#e74c3c";
+                setTimeout(() => {
+                    feedback.innerHTML = "";
+                    generateExercise();
+                }, 2000);
             }
         }
 
-        function updateProgress() {
-            document.getElementById('progress').value = currentExercise;
-        }
-
-        function showWinScreen() {
-            document.getElementById('game-zone').classList.add('hidden');
-            document.getElementById('win-screen').classList.remove('hidden');
-        }
-
-        function nextLevel() {
-            currentLevel++;
-            if(currentLevel > 5) currentLevel = 1;
-            currentExercise = 0;
-            document.getElementById('level-title').innerText = levels[currentLevel-1].title;
-            document.getElementById('game-zone').classList.remove('hidden');
-            document.getElementById('win-screen').classList.add('hidden');
-            document.getElementById('progress').value = 0;
-            generateExercise();
+        function showCertificate() {
+            document.getElementById('main-game').style.display = 'none';
+            document.getElementById('certificate').style.display = 'block';
+            celebrate(); celebrate();
         }
 
         function celebrate() {
-            for(let i=0; i<15; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'celebration';
-                confetti.innerText = ['⭐','🎈','✨','👏'][Math.floor(Math.random()*4)];
-                confetti.style.left = Math.random() * 100 + 'vw';
-                confetti.style.top = '100vh';
-                document.body.appendChild(confetti);
-                
-                const animation = confetti.animate([
-                    { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
-                    { transform: `translateY(-100vh) rotate(${Math.random()*360}deg)`, opacity: 0 }
-                ], { duration: 2000, easing: 'ease-out' });
-                
-                animation.onfinish = () => confetti.remove();
+            for(let i=0; i<20; i++) {
+                const conf = document.createElement('div');
+                conf.style.position = 'fixed';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.top = '100vh';
+                conf.innerText = ['⭐','✨','🎈','🎊'][Math.floor(Math.random()*4)];
+                conf.style.fontSize = '2rem';
+                conf.style.zIndex = '100';
+                document.body.appendChild(conf);
+                conf.animate([
+                    { transform: 'translateY(0) rotate(0)', opacity: 1 },
+                    { transform: `translateY(-110vh) rotate(${Math.random()*360}deg)`, opacity: 0 }
+                ], { duration: 2000, easing: 'ease-out' }).onfinish = () => conf.remove();
             }
         }
 
-        // Start
         generateExercise();
     </script>
 </body>
