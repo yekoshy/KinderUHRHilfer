@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uhren-Meister 2.0</title>
+    <style>
+        :root {
+            --primary: #ff6b6b;
+            --secondary: #4ecdc4;
+            --accent: #ffe66d;
+            --bg: #fdfbfb;
+            --text: #2d3436;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            padding: 25px;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        /* Menü Style */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .full-program-btn {
+            grid-column: span 2;
+            background: var(--primary) !important;
+            font-size: 1.3rem !important;
+            padding: 20px !important;
+        }
+
+        /* Uhr Style */
+        #clock-container {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            border: 8px solid #444;
+            border-radius: 50%;
+            margin: 20px auto;
+            background: white;
+        }
+
+        .hand {
+            position: absolute; bottom: 50%; left: 50%;
+            transform-origin: bottom; border-radius: 5px;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .hour-hand { width: 7px; height: 55px; background: #333; z-index: 3; }
+        .min-hand { width: 4px; height: 85px; background: var(--primary); z-index: 2; }
+        .dot { position: absolute; width: 12px; height: 12px; background: #333; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; }
+        .number { position: absolute; font-weight: bold; font-size: 1.2rem; }
+
+        #digital-display {
+            font-size: 2.5rem; font-family: monospace; background: #333; color: #0f0;
+            padding: 10px 20px; border-radius: 15px; margin: 10px; display: inline-block;
+        }
+
+        /* Buttons */
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        
+        button {
+            padding: 15px; font-size: 1rem; border: none; border-radius: 15px;
+            cursor: pointer; background: var(--secondary); color: white;
+            font-weight: bold; transition: 0.2s; box-shadow: 0 4px 0 #3dbbb3;
+        }
+
+        button:hover { filter: brightness(1.1); }
+        button:active { transform: translateY(3px); box-shadow: none; }
+
+        .back-btn { background: #95a5a6; box-shadow: 0 4px 0 #7f8c8d; margin-top: 20px; }
+
+        progress { width: 100%; height: 20px; accent-color: var(--secondary); margin: 10px 0; }
+
+        .hidden { display: none !important; }
+
+        /* Zertifikat */
+        #certificate {
+            border: 10px double #d4af37; padding: 40px; background: #fffdf5;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MENÜ SCREEN -->
+    <div id="screen-menu" class="container">
+        <h1 style="color:var(--primary)">🕒 Uhren-Meister</h1>
+        <p>Was möchtest du heute machen?</p>
+        
+        <div class="menu-grid">
+            <button class="full-program-btn" onclick="startFullProgram()">🏆 Das ganze Programm<br><small>(mit Zertifikat)</small></button>
+            <button onclick="startSingleLevel(1)">Level 1: Stunden</button>
+            <button onclick="startSingleLevel(2)">Level 2: Halb</button>
+            <button onclick="startSingleLevel(3)">Level 3: Viertel</button>
+            <button onclick="startSingleLevel(4)">Level 4: Zehn</button>
+            <button onclick="startSingleLevel(5)">Level 5: Fünf</button>
+            <button onclick="startSingleLevel(6)">Level 6: Digital</button>
+            <button onclick="startSingleLevel(7)">Level 7: Profi</button>
+        </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="screen-game" class="container hidden">
+        <div style="display:flex; justify-content: space-between; align-items:center;">
+            <button class="back-btn" onclick="showMenu()" style="padding:5px 15px;">⬅ Menü</button>
+            <span id="level-indicator" style="font-weight:bold; color:var(--secondary)">Level 1</span>
+        </div>
+        
+        <progress id="progress" value="0" max="12"></progress>
+        
+        <div id="clock-container">
+            <div class="dot"></div>
+            <div id="hour-hand" class="hand hour-hand"></div>
+            <div id="min-hand" class="hand min-hand"></div>
+        </div>
+
+        <div id="digital-display">00:00</div>
+        <p id="question-text">Wie spät ist es?</p>
+
+        <div class="options" id="options"></div>
+        <div id="feedback" style="height:40px; margin-top:15px; font-weight:bold;"></div>
+    </div>
+
+    <!-- ZERTIFIKAT SCREEN -->
+    <div id="screen-cert" class="container hidden">
+        <div id="certificate">
+            <h1 style="color:#d4af37; font-size:3rem;">URKUNDE</h1>
+            <p>Herzlichen Glückwunsch!</p>
+            <div style="font-size:5rem;">🏆</div>
+            <h2>Du bist ein Uhren-Meister!</h2>
+            <p>Du hast alle Prüfungen bestanden.</p>
+            <button onclick="location.reload()" class="back-btn">Nochmal spielen</button>
+        </div>
+    </div>
+
+    <script>
+        let currentLevel = 1;
+        let exerciseCount = 0;
+        let isFullProgram = false;
+        let currentCorrectAnswer = "";
+
+        const numWords = ["null", "ein", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun", "zehn", "elf", "zwölf"];
+        const numWordsLarge = ["null", "Eins", "Zwei", "Drei", "Vier", "Fünf", "Sechs", "Sieben", "Acht", "Neun", "Zehn", "Elf", "Zwölf"];
+
+        const levelData = [
+            { id: 1, title: "Level 1: Ganze Stunden", m: [0] },
+            { id: 2, title: "Level 2: Halbe Stunden", m: [30] },
+            { id: 3, title: "Level 3: Viertel vor & nach", m: [15, 45] },
+            { id: 4, title: "Level 4: Zehn vor & nach", m: [10, 50] },
+            { id: 5, title: "Level 5: Fünf vor & nach", m: [5, 55] },
+            { id: 6, title: "Level 6: Digital-Text", m: [0, 15, 30, 45], type: 'text' },
+            { id: 7, title: "Level 7: Der Abschluss (Zahlen)", m: [0, 5, 10, 15, 30, 45, 50, 55], type: 'final' }
+        ];
+
+        // Uhrzahlen erstellen
+        const clockUI = document.getElementById('clock-container');
+        for(let i=1; i<=12; i++) {
+            const el = document.createElement('div');
+            el.className = 'number';
+            el.innerText = i;
+            const angle = i * 30 * (Math.PI/180);
+            el.style.left = (110 + 85 * Math.sin(angle) - 8) + 'px';
+            el.style.top = (110 - 85 * Math.cos(angle) - 10) + 'px';
+            clockUI.appendChild(el);
+        }
+
+        function showMenu() {
+            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+            document.getElementById('screen-menu').classList.remove('hidden');
+        }
+
+        function startFullProgram() {
+            isFullProgram = true;
+            currentLevel = 1;
+            exerciseCount = 0;
+            initLevel();
+        }
+
+        function startSingleLevel(lvl) {
+            isFullProgram = false;
+            currentLevel = lvl;
+            exerciseCount = 0;
+            initLevel();
+        }
+
+        function initLevel() {
+            document.getElementById('screen-menu').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            document.getElementById('progress').value = 0;
+            nextExercise();
+        }
+
+        function getGermanTimeText(h, m) {
+            let nextH = h === 12 ? 1 : h + 1;
+            // Spezialfall "ein" vs "eins"
+            const hW = (h === 1 && m === 0) ? "Ein" : numWordsLarge[h];
+            const nHW = numWordsLarge[nextH];
+
+            if (m === 0) return hW + " Uhr";
+            if (m === 30) return "Halb " + nHW;
+            if (m === 15) return "Viertel nach " + hW;
+            if (m === 45) return "Viertel vor " + nHW;
+            if (m === 10) return "Zehn nach " + hW;
+            if (m === 50) return "Zehn vor " + nHW;
+            if (m === 5) return "Fünf nach " + hW;
+            if (m === 55) return "Fünf vor " + nHW;
+            return h + ":" + m;
+        }
+
+        function nextExercise() {
+            const data = levelData[currentLevel-1];
+            document.getElementById('level-indicator').innerText = data.title;
+            document.getElementById('feedback').innerText = "";
+
+            let h = Math.floor(Math.random() * 12) + 1;
+            let m = data.m[Math.floor(Math.random() * data.m.length)];
+
+            updateClockHands(h, m);
+
+            // UI Logik
+            const clock = document.getElementById('clock-container');
+            const digi = document.getElementById('digital-display');
+            digi.innerText = h.toString().padStart(2, '0') + ":" + m.toString().padStart(2, '0');
+
+            if(data.type === 'text') {
+                clock.classList.add('hidden');
+                digi.classList.remove('hidden');
+            } else if (data.type === 'final') {
+                clock.classList.remove('hidden');
+                digi.classList.add('hidden');
+            } else {
+                clock.classList.remove('hidden');
+                digi.classList.remove('hidden');
+            }
+
+            // Antwortmöglichkeiten
+            let correct = (data.type === 'final') ? digi.innerText : getGermanTimeText(h, m);
+            currentCorrectAnswer = correct;
+
+            let choices = [correct];
+            while(choices.length < 4) {
+                let rh = Math.floor(Math.random() * 12) + 1;
+                let rm = data.m[Math.floor(Math.random() * data.m.length)];
+                let rc = (data.type === 'final') ? 
+                    rh.toString().padStart(2, '0') + ":" + rm.toString().padStart(2, '0') : 
+                    getGermanTimeText(rh, rm);
+                if(!choices.includes(rc)) choices.push(rc);
+            }
+            choices.sort(() => Math.random() - 0.5);
+
+            const optDiv = document.getElementById('options');
+            optDiv.innerHTML = "";
+            choices.forEach(c => {
+                const btn = document.createElement('button');
+                btn.innerText = c;
+                btn.onclick = () => checkAnswer(c);
+                optDiv.appendChild(btn);
+            });
+        }
+
+        function updateClockHands(h, m) {
+            const hDeg = (h * 30) + (m * 0.5);
+            const mDeg = m * 6;
+            document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hDeg}deg)`;
+            document.getElementById('min-hand').style.transform = `translateX(-50%) rotate(${mDeg}deg)`;
+        }
+
+        function checkAnswer(ans) {
+            const f = document.getElementById('feedback');
+            if(ans === currentCorrectAnswer) {
+                f.innerHTML = "✅ Richtig! Toll!";
+                f.style.color = "green";
+                celebrate();
+                exerciseCount++;
+                document.getElementById('progress').value = exerciseCount;
+
+                if(exerciseCount >= 12) {
+                    if(isFullProgram && currentLevel < 7) {
+                        currentLevel++;
+                        exerciseCount = 0;
+                        setTimeout(nextExercise, 1500);
+                    } else if (isFullProgram && currentLevel === 7) {
+                        setTimeout(showCert, 1000);
+                    } else {
+                        f.innerHTML = "🎉 Level geschafft!";
+                        setTimeout(showMenu, 2000);
+                    }
+                } else {
+                    setTimeout(nextExercise, 1200);
+                }
+            } else {
+                f.innerHTML = "❌ Das ist " + currentCorrectAnswer;
+                f.style.color = "red";
+                setTimeout(nextExercise, 2500);
+            }
+        }
+
+        function showCert() {
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-cert').classList.remove('hidden');
+        }
+
+        function celebrate() {
+            for(let i=0; i<15; i++) {
+                const conf = document.createElement('div');
+                conf.innerText = ['⭐','🎈','✨'][Math.floor(Math.random()*3)];
+                conf.style.position = 'fixed';
+                conf.style.left = Math.random()*100+'vw';
+                conf.style.top = '100vh';
+                conf.style.fontSize = '2rem';
+                document.body.appendChild(conf);
+                conf.animate([
+                    { transform: 'translateY(0)', opacity: 1 },
+                    { transform: 'translateY(-110vh) rotate(360deg)', opacity: 0 }
+                ], { duration: 2000 }).onfinish = () => conf.remove();
+            }
+        }
+    </script>
+</body>
+</html>
