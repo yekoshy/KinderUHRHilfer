@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uhren-Meister - Lerne die Uhrzeit!</title>
+    <style>
+        :root {
+            --primary: #ff6b6b;
+            --secondary: #4ecdc4;
+            --accent: #ffe66d;
+            --bg: #f7f9fc;
+            --text: #2d3436;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 10px; }
+        .level-info { font-weight: bold; color: var(--secondary); margin-bottom: 20px; }
+
+        /* Analoge Uhr Styling */
+        #clock-container {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            border: 10px solid #333;
+            border-radius: 50%;
+            margin: 20px auto;
+            background: white;
+        }
+
+        .dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #333;
+            border-radius: 50%;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            border-radius: 5px;
+            transition: transform 0.5s cubic-bezier(0.4, 2.08, 0.55, 0.44);
+        }
+
+        .hour-hand { width: 6px; height: 60px; background: #333; z-index: 3; }
+        .min-hand { width: 4px; height: 90px; background: var(--primary); z-index: 2; }
+
+        .number {
+            position: absolute;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* Digital Uhr Styling */
+        #digital-display {
+            font-size: 3rem;
+            font-family: 'Courier New', Courier, monospace;
+            background: #333;
+            color: #0f0;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            display: inline-block;
+        }
+
+        /* UI Elemente */
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 15px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background: var(--secondary);
+            color: white;
+            transition: transform 0.1s, background 0.2s;
+        }
+
+        button:hover { background: #3dbbb3; transform: scale(1.02); }
+        button:active { transform: scale(0.98); }
+
+        .feedback {
+            margin-top: 20px;
+            height: 60px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .celebration { font-size: 3rem; position: fixed; pointer-events: none; }
+
+        .hidden { display: none; }
+
+        progress { width: 100%; height: 20px; border-radius: 10px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🕒 Uhren-Meister</h1>
+        <div id="game-zone">
+            <div class="level-info" id="level-title">Level 1: Ganze Stunden</div>
+            <progress id="progress" value="0" max="12"></progress>
+            <p id="question-text">Wie viel Uhr ist es?</p>
+
+            <div id="clock-container">
+                <div class="dot"></div>
+                <div id="hour-hand" class="hand hour-hand"></div>
+                <div id="min-hand" class="hand min-hand"></div>
+                <!-- Zahlen werden per JS eingefügt -->
+            </div>
+
+            <div id="digital-display" class="hidden">00:00</div>
+
+            <div class="options" id="options">
+                <!-- Buttons werden per JS eingefügt -->
+            </div>
+
+            <div class="feedback" id="feedback"></div>
+        </div>
+
+        <div id="win-screen" class="hidden">
+            <h2 style="color: var(--secondary)">🎉 Super gemacht!</h2>
+            <p>Du hast dieses Level gemeistert!</p>
+            <button onclick="nextLevel()">Nächstes Level starten</button>
+        </div>
+    </div>
+
+    <script>
+        let currentLevel = 1;
+        let currentExercise = 0;
+        let correctAnswers = 0;
+        let currentCorrectTime = "";
+
+        const levels = [
+            { title: "Level 1: Ganze Stunden", type: "analog" },
+            { title: "Level 2: Halbe Stunden", type: "analog" },
+            { title: "Level 3: Minuten VOR halb", type: "analog" },
+            { title: "Level 4: Minuten NACH halb", type: "analog" },
+            { title: "Level 5: Digitaluhr lesen", type: "digital" }
+        ];
+
+        // Uhr-Zahlen erstellen
+        const clockContainer = document.getElementById('clock-container');
+        for(let i = 1; i <= 12; i++) {
+            const num = document.createElement('div');
+            num.className = 'number';
+            num.innerText = i;
+            const angle = (i * 30) * (Math.PI / 180);
+            const x = 125 + 100 * Math.sin(angle) - 10;
+            const y = 125 - 100 * Math.cos(angle) - 15;
+            num.style.left = x + 'px';
+            num.style.top = y + 'px';
+            clockContainer.appendChild(num);
+        }
+
+        function generateExercise() {
+            let hour = Math.floor(Math.random() * 12) + 1;
+            let minute = 0;
+            
+            if (currentLevel === 1) minute = 0;
+            else if (currentLevel === 2) minute = 30;
+            else if (currentLevel === 3) minute = Math.random() > 0.5 ? 20 : 25;
+            else if (currentLevel === 4) minute = Math.random() > 0.5 ? 35 : 40;
+            else if (currentLevel === 5) {
+                const types = [0, 30, 15, 45];
+                minute = types[Math.floor(Math.random() * types.length)];
+            }
+
+            setClock(hour, minute);
+            
+            const correctText = getTimeString(hour, minute);
+            currentCorrectTime = correctText;
+
+            // Optionen erstellen
+            let options = [correctText];
+            while(options.length < 4) {
+                let rHour = Math.floor(Math.random() * 12) + 1;
+                let rMin = [0, 30, 20, 40, 15][Math.floor(Math.random() * 5)];
+                let opt = getTimeString(rHour, rMin);
+                if(!options.includes(opt)) options.push(opt);
+            }
+            options.sort(() => Math.random() - 0.5);
+
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(opt);
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        function getTimeString(h, m) {
+            if (currentLevel === 5) return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} Uhr`;
+            
+            if (m === 0) return `${h} Uhr`;
+            if (m === 30) return `Halb ${h === 12 ? 1 : h + 1}`;
+            if (m === 20) return `Zehn vor halb ${h === 12 ? 1 : h + 1}`;
+            if (m === 25) return `Fünf vor halb ${h === 12 ? 1 : h + 1}`;
+            if (m === 35) return `Fünf nach halb ${h === 12 ? 1 : h + 1}`;
+            if (m === 40) return `Zehn nach halb ${h === 12 ? 1 : h + 1}`;
+            return `${h}:${m}`;
+        }
+
+        function setClock(h, m) {
+            const hDeg = (h * 30) + (m * 0.5);
+            const mDeg = m * 6;
+            document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hDeg}deg)`;
+            document.getElementById('min-hand').style.transform = `translateX(-50%) rotate(${mDeg}deg)`;
+            
+            if (currentLevel === 5) {
+                document.getElementById('clock-container').classList.add('hidden');
+                document.getElementById('digital-display').classList.remove('hidden');
+                document.getElementById('digital-display').innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+            } else {
+                document.getElementById('clock-container').classList.remove('hidden');
+                document.getElementById('digital-display').classList.add('hidden');
+            }
+        }
+
+        function checkAnswer(answer) {
+            const feedback = document.getElementById('feedback');
+            if (answer === currentCorrectTime) {
+                feedback.innerHTML = "✅ Super! Richtig!";
+                feedback.style.color = "green";
+                celebrate();
+                correctAnswers++;
+                currentExercise++;
+                updateProgress();
+                
+                if (currentExercise >= 12) {
+                    showWinScreen();
+                } else {
+                    setTimeout(generateExercise, 1500);
+                }
+            } else {
+                feedback.innerHTML = `❌ Oje! Das war: ${currentCorrectTime}`;
+                feedback.style.color = "red";
+                setTimeout(generateExercise, 2500);
+            }
+        }
+
+        function updateProgress() {
+            document.getElementById('progress').value = currentExercise;
+        }
+
+        function showWinScreen() {
+            document.getElementById('game-zone').classList.add('hidden');
+            document.getElementById('win-screen').classList.remove('hidden');
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            if(currentLevel > 5) currentLevel = 1;
+            currentExercise = 0;
+            document.getElementById('level-title').innerText = levels[currentLevel-1].title;
+            document.getElementById('game-zone').classList.remove('hidden');
+            document.getElementById('win-screen').classList.add('hidden');
+            document.getElementById('progress').value = 0;
+            generateExercise();
+        }
+
+        function celebrate() {
+            for(let i=0; i<15; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'celebration';
+                confetti.innerText = ['⭐','🎈','✨','👏'][Math.floor(Math.random()*4)];
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = '100vh';
+                document.body.appendChild(confetti);
+                
+                const animation = confetti.animate([
+                    { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+                    { transform: `translateY(-100vh) rotate(${Math.random()*360}deg)`, opacity: 0 }
+                ], { duration: 2000, easing: 'ease-out' });
+                
+                animation.onfinish = () => confetti.remove();
+            }
+        }
+
+        // Start
+        generateExercise();
+    </script>
+</body>
+</html>
