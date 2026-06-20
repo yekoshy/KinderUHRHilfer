@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أكاديمية إتقان الساعة</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #00cec9;
+            --accent: #fab1a0;
+            --bg: #fdfdfd;
+            --correct: #27ae60;
+            --wrong: #e17055;
+            --text: #2d3436;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex; justify-content: center; padding: 10px; margin: 0;
+        }
+
+        .container {
+            max-width: 600px; width: 100%; background: white; padding: 25px;
+            border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center;
+        }
+
+        /* القائمة الرئيسية */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .full-btn { grid-column: span 2; background: var(--primary) !important; padding: 20px !important; font-size: 1.3rem !important; box-shadow: 0 6px 0 #4834d4 !important; color: white; border: none; border-radius: 18px; cursor: pointer; font-weight: bold; }
+
+        /* شريط التقدم */
+        .progress-container {
+            display: flex; height: 22px; background: #eee; border-radius: 11px;
+            overflow: hidden; margin: 15px 0; border: 2px solid #ddd;
+        }
+        .progress-segment { flex: 1; border-left: 1px solid #fff; transition: background 0.3s; }
+
+        /* الساعة */
+        #clock-container {
+            position: relative; width: 230px; height: 230px; border: 8px solid #2d3436;
+            border-radius: 50%; margin: 15px auto; background: white;
+        }
+        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom; border-radius: 5px; }
+        .hour-hand { width: 8px; height: 60px; background: #2d3436; z-index: 3; }
+        .min-hand { width: 5px; height: 90px; background: var(--primary); z-index: 2; }
+        .dot { position: absolute; width: 14px; height: 14px; background: #2d3436; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; }
+        .number { position: absolute; font-weight: bold; font-size: 1.2rem; color: #2d3436; }
+
+        #digital-display {
+            font-size: 2.5rem; font-family: 'Courier New', monospace; background: #2d3436; color: #55efc4;
+            padding: 10px 20px; border-radius: 15px; margin: 5px; display: inline-block;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5); direction: ltr;
+        }
+
+        /* الأزرار */
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        button {
+            padding: 16px; font-size: 1.05rem; border: none; border-radius: 18px;
+            cursor: pointer; background: var(--secondary); color: white;
+            font-weight: bold; box-shadow: 0 4px 0 #00b894; transition: 0.1s;
+        }
+        button:active { transform: translateY(3px); box-shadow: none; }
+        .back-btn { background: #b2bec3; box-shadow: 0 4px 0 #636e72; }
+
+        .stats { font-size: 1rem; color: #636e72; margin-bottom: 8px; font-weight: bold;}
+        .hidden { display: none !important; }
+
+        /* النتائج والشهادة */
+        .result-box { padding: 30px; border: 8px double var(--accent); border-radius: 25px; }
+        .advice { background: #fff9db; padding: 18px; border-radius: 15px; margin: 20px 0; font-size: 1rem; border-right: 5px solid #f1c40f; text-align: right; }
+    </style>
+</head>
+<body>
+
+    <!-- القائمة الرئيسية -->
+    <div id="screen-menu" class="container">
+        <h1 style="color:var(--primary); font-size: 2.2rem; margin-bottom: 5px;">🕒 أكاديمية الساعة</h1>
+        <p style="font-size: 1.2rem;">هل أنت مستعد لتعلم قراءة الوقت؟</p>
+        <div class="menu-grid">
+            <button class="full-btn" onclick="startGame(0, true)">🏆 البرنامج الكامل<br><small>(للحصول على الشهادة)</small></button>
+            <button onclick="startGame(1)">المستوى 1: الساعات الكاملة</button>
+            <button onclick="startGame(2)">المستوى 2: نصف الساعة</button>
+            <button onclick="startGame(3)">المستوى 3: الربع (وربع/إلا ربع)</button>
+            <button onclick="startGame(4)">المستوى 4: عشر دقائق</button>
+            <button onclick="startGame(5)">المستوى 5: خمس دقائق</button>
+            <button onclick="startGame(6)">المستوى 6: قراءة الساعة الرقمية</button>
+            <button onclick="startGame(7)">المستوى 7: التحدي النهائي</button>
+        </div>
+    </div>
+
+    <!-- شاشة اللعب -->
+    <div id="screen-game" class="container hidden">
+        <div style="display:flex; justify-content: space-between; align-items:center;">
+            <button class="back-btn" onclick="location.reload()" style="padding:8px 15px;">⬅ القائمة</button>
+            <span id="lvl-name" style="font-weight:bold; color:var(--primary)">المستوى</span>
+        </div>
+        
+        <div class="stats">الإجابات الصحيحة: <span id="stat-correct" style="color:var(--correct)">0</span> | الخاطئة: <span id="stat-wrong" style="color:var(--wrong)">0</span></div>
+        <div class="progress-container" id="progress-bar"></div>
+        
+        <div id="clock-container">
+            <div class="dot"></div>
+            <div id="hour-hand" class="hand hour-hand"></div>
+            <div id="min-hand" class="hand min-hand"></div>
+        </div>
+
+        <div id="digital-display">00:00</div>
+        <p style="font-weight: bold; margin-bottom: 0;">كم الساعة الآن؟</p>
+        <div class="options" id="options"></div>
+        <div id="feedback" style="height:40px; margin-top:15px; font-weight:bold; font-size: 1.2rem;"></div>
+    </div>
+
+    <!-- شاشة النتائج / الشهادة -->
+    <div id="screen-result" class="container hidden">
+        <div id="res-content" class="result-box">
+            <h1 id="res-title">النتيجة النهائية</h1>
+            <div style="font-size:5rem;" id="res-icon">⭐</div>
+            <h2 id="res-grade">اللقب: بطل الوقت</h2>
+            <p id="res-score" style="font-size: 1.2rem;">لقد أجبت على X من أصل Y</p>
+            <div id="res-advice" class="advice"></div>
+            <button onclick="location.reload()" class="full-btn">العب مرة أخرى</button>
+        </div>
+    </div>
+
+    <script>
+        let isFull = false;
+        let curLvl = 1;
+        let curEx = 0;
+        let totalCorrect = 0;
+        let totalWrong = 0;
+        let lvlMistakes = {}; 
+        let currentCorrectStr = "";
+
+        const hourWords = ["", "الواحدة", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة", "التاسعة", "العاشرة", "الحادية عشرة", "الثانية عشرة"];
+
+        const levels = [
+            { id: 1, n: "المستوى 1: الساعات الكاملة", m: [0] },
+            { id: 2, n: "المستوى 2: النصف", m: [30] },
+            { id: 3, n: "المستوى 3: الربع", m: [15, 45] },
+            { id: 4, n: "المستوى 4: عشر دقائق", m: [10, 50] },
+            { id: 5, n: "المستوى 5: خمس دقائق", m: [5, 55] },
+            { id: 6, n: "المستوى 6: النص الرقمي", m: [0, 15, 30, 45], mode: 'text' },
+            { id: 7, n: "المستوى 7: التحدي الكبير", m: [0, 5, 10, 15, 30, 45, 50, 55], mode: 'final' }
+        ];
+
+        // رسم أرقام الساعة
+        const clockUI = document.getElementById('clock-container');
+        for(let i=1; i<=12; i++) {
+            const el = document.createElement('div'); el.className = 'number'; el.innerText = i;
+            const a = i * 30 * (Math.PI/180);
+            el.style.left = (115 + 90 * Math.sin(a) - 10) + 'px'; el.style.top = (115 - 90 * Math.cos(a) - 12) + 'px';
+            clockUI.appendChild(el);
+        }
+
+        function startGame(lvl, full = false) {
+            isFull = full;
+            curLvl = full ? 1 : lvl;
+            curEx = 0; totalCorrect = 0; totalWrong = 0; lvlMistakes = {};
+            document.getElementById('screen-menu').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            buildProgressBar();
+            loadExercise();
+        }
+
+        function buildProgressBar() {
+            const bar = document.getElementById('progress-bar');
+            bar.innerHTML = "";
+            const count = isFull ? (7 * 12) : 12; 
+            for(let i=0; i<count; i++) {
+                const seg = document.createElement('div');
+                seg.className = 'progress-segment';
+                seg.id = 'seg-' + i;
+                bar.appendChild(seg);
+            }
+        }
+
+        function getArabicText(h, m) {
+            let nextH = h === 12 ? 1 : h + 1;
+            const hW = hourWords[h];
+            const nHW = hourWords[nextH];
+
+            if (m === 0) return hW + " تماماً";
+            if (m === 30) return hW + " والنصف";
+            if (m === 15) return hW + " والربع";
+            if (m === 45) return nHW + " إلا ربعاً";
+            if (m === 10) return hW + " وعشر دقائق";
+            if (m === 50) return nHW + " إلا عشر دقائق";
+            if (m === 5) return hW + " وخمس دقائق";
+            if (m === 55) return nHW + " إلا خمس دقائق";
+            return h + ":" + m;
+        }
+
+        function loadExercise() {
+            const data = levels[curLvl-1];
+            document.getElementById('lvl-name').innerText = data.n;
+            document.getElementById('feedback').innerText = "";
+
+            let h = Math.floor(Math.random() * 12) + 1;
+            let m = data.m[Math.floor(Math.random() * data.m.length)];
+
+            // تحديث العقارب
+            const hDeg = (h * 30) + (m * 0.5);
+            const mDeg = m * 6;
+            document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hDeg}deg)`;
+            document.getElementById('min-hand').style.transform = `translateX(-50%) rotate(${mDeg}deg)`;
+            
+            const digi = document.getElementById('digital-display');
+            const digiStr = h.toString().padStart(2, '0') + ":" + m.toString().padStart(2, '0');
+            digi.innerText = digiStr;
+
+            // التحكم في الظهور
+            document.getElementById('clock-container').classList.toggle('hidden', data.mode === 'text');
+            digi.classList.toggle('hidden', data.mode === 'final');
+
+            // منطق الإجابة
+            let correct = (data.mode === 'final') ? digiStr : getArabicText(h, m);
+            currentCorrectStr = correct;
+
+            let choices = [correct];
+            while(choices.length < 4) {
+                let rh = Math.floor(Math.random() * 12) + 1;
+                let rm = data.m[Math.floor(Math.random() * data.m.length)];
+                let rc = (data.mode === 'final') ? 
+                    rh.toString().padStart(2, '0') + ":" + rm.toString().padStart(2, '0') : 
+                    getArabicText(rh, rm);
+                if(!choices.includes(rc)) choices.push(rc);
+            }
+            choices.sort(() => Math.random() - 0.5);
+
+            const optDiv = document.getElementById('options');
+            optDiv.innerHTML = "";
+            choices.forEach(c => {
+                const btn = document.createElement('button');
+                btn.innerText = c;
+                btn.onclick = () => checkAnswer(c);
+                optDiv.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(ans) {
+            const isCorrect = (ans === currentCorrectStr);
+            const segID = isFull ? ((curLvl-1)*12 + curEx) : curEx;
+            const seg = document.getElementById('seg-' + segID);
+            
+            if(isCorrect) {
+                totalCorrect++;
+                seg.style.background = "var(--correct)";
+                document.getElementById('feedback').innerHTML = "✨ ممتاز! إجابة صحيحة";
+                document.getElementById('feedback').style.color = "var(--correct)";
+                celebrate();
+            } else {
+                totalWrong++;
+                lvlMistakes[curLvl] = (lvlMistakes[curLvl] || 0) + 1;
+                seg.style.background = "var(--wrong)";
+                document.getElementById('feedback').innerHTML = "❌ خطأ، الساعة هي " + currentCorrectStr;
+                document.getElementById('feedback').style.color = "var(--wrong)";
+            }
+
+            document.getElementById('stat-correct').innerText = totalCorrect;
+            document.getElementById('stat-wrong').innerText = totalWrong;
+
+            curEx++;
+            if(curEx >= 12) {
+                if(isFull && curLvl < 7) {
+                    curLvl++; curEx = 0;
+                    setTimeout(loadExercise, 1500);
+                } else {
+                    setTimeout(finishGame, 1500);
+                }
+            } else {
+                setTimeout(loadExercise, 1200);
+            }
+        }
+
+        function finishGame() {
+            document.getElementById('screen-game').classList.add('hidden');
+            const res = document.getElementById('screen-result');
+            res.classList.remove('hidden');
+
+            const total = isFull ? (7 * 12) : 12;
+            const ratio = totalCorrect / total;
+            let grade = "";
+            let icon = "⭐";
+            let advice = "<b>نصائح لك:</b><br>";
+
+            if(ratio >= 1.0) { grade = "اللقب: بطل الوقت الأسطوري!"; icon = "👑"; }
+            else if(ratio >= 0.85) { grade = "اللقب: خبير الساعات"; icon = "🏆"; }
+            else if(ratio >= 0.70) { grade = "اللقب: مستكشف الوقت"; icon = "🌟"; }
+            else if(ratio >= 0.50) { grade = "اللقب: متدرب ذكي"; icon = "👍"; }
+            else { grade = "تحتاج للمزيد من التدريب!"; icon = "📖"; }
+
+            let hasAdvice = false;
+            if(lvlMistakes[3] > 3) { advice += "• تذكر: عندما يكون العقرب الكبير عند الرقم 9، نقول 'إلا ربعاً' للساعة القادمة.<br>"; hasAdvice = true; }
+            if(lvlMistakes[4] > 3 || lvlMistakes[5] > 3) { advice += "• إذا كان العقرب في النصف الأيسر، نستخدم كلمة 'إلا' مع الساعة القادمة.<br>"; hasAdvice = true; }
+            if(lvlMistakes[6] > 3 || lvlMistakes[7] > 3) { advice += "• في الساعة الرقمية، الرقم الأول من اليسار هو الساعة، والثاني هو الدقائق.<br>"; hasAdvice = true; }
+            
+            if(!hasAdvice && ratio > 0.5) advice = "أنت مذهل! لديك فهم رائع لكيفية عمل الساعة.";
+            if(ratio < 0.5) advice = "لا تستسلم! قراءة الساعة مهارة تحتاج للوقت. جرب البدء بالمستوى الأول والثاني مجدداً.";
+
+            document.getElementById('res-grade').innerText = grade;
+            document.getElementById('res-score').innerText = `لقد أجبت على ${totalCorrect} من أصل ${total} إجابة صحيحة!`;
+            document.getElementById('res-icon').innerText = icon;
+            document.getElementById('res-advice').innerHTML = advice;
+
+            if(isFull && ratio < 0.5) {
+                document.getElementById('res-title').innerText = "حاول مرة أخرى!";
+                document.getElementById('res-title').style.color = "orange";
+            } else if (isFull) {
+                document.getElementById('res-title').innerText = "شهادة إتقان الساعة";
+                document.getElementById('res-title').style.color = "#d4af37";
+                celebrate(); celebrate();
+            }
+        }
+
+        function celebrate() {
+            for(let i=0; i<15; i++) {
+                const conf = document.createElement('div');
+                conf.innerText = ['⭐','🎈','✨','🎉'][Math.floor(Math.random()*4)];
+                conf.style.position = 'fixed';
+                conf.style.left = Math.random()*100+'vw';
+                conf.style.top = '100vh';
+                conf.style.fontSize = '2rem';
+                conf.style.zIndex = '1000';
+                document.body.appendChild(conf);
+                conf.animate([
+                    { transform: 'translateY(0)', opacity: 1 },
+                    { transform: 'translateY(-110vh) rotate(360deg)', opacity: 0 }
+                ], { duration: 2000 }).onfinish = () => conf.remove();
+            }
+        }
+    </script>
+</body>
+</html>
