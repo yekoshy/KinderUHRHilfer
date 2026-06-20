@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clock Master Academy</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #00cec9;
+            --accent: #fab1a0;
+            --bg: #fdfdfd;
+            --correct: #27ae60;
+            --wrong: #e17055;
+            --text: #2d3436;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex; justify-content: center; padding: 10px; margin: 0;
+        }
+
+        .container {
+            max-width: 600px; width: 100%; background: white; padding: 25px;
+            border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center;
+        }
+
+        /* Menu */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .full-btn { grid-column: span 2; background: var(--primary) !important; padding: 20px !important; font-size: 1.3rem !important; box-shadow: 0 6px 0 #4834d4 !important;}
+
+        /* Progress Bar */
+        .progress-container {
+            display: flex; height: 22px; background: #eee; border-radius: 11px;
+            overflow: hidden; margin: 15px 0; border: 2px solid #ddd;
+        }
+        .progress-segment { flex: 1; border-right: 1px solid #fff; transition: background 0.3s; }
+
+        /* Clock */
+        #clock-container {
+            position: relative; width: 230px; height: 230px; border: 8px solid #2d3436;
+            border-radius: 50%; margin: 15px auto; background: white;
+        }
+        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom; border-radius: 5px; }
+        .hour-hand { width: 8px; height: 60px; background: #2d3436; z-index: 3; }
+        .min-hand { width: 5px; height: 90px; background: var(--primary); z-index: 2; }
+        .dot { position: absolute; width: 14px; height: 14px; background: #2d3436; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; }
+        .number { position: absolute; font-weight: bold; font-size: 1.2rem; color: #2d3436; }
+
+        #digital-display {
+            font-size: 2.5rem; font-family: 'Courier New', monospace; background: #2d3436; color: #55efc4;
+            padding: 10px 20px; border-radius: 15px; margin: 5px; display: inline-block;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        /* Buttons */
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        button {
+            padding: 16px; font-size: 1.05rem; border: none; border-radius: 18px;
+            cursor: pointer; background: var(--secondary); color: white;
+            font-weight: bold; box-shadow: 0 4px 0 #00b894; transition: 0.1s;
+        }
+        button:active { transform: translateY(3px); box-shadow: none; }
+        .back-btn { background: #b2bec3; box-shadow: 0 4px 0 #636e72; }
+
+        .stats { font-size: 1rem; color: #636e72; margin-bottom: 8px; font-weight: bold;}
+        .hidden { display: none !important; }
+
+        /* Results */
+        .result-box { padding: 30px; border: 8px double var(--accent); border-radius: 25px; }
+        .advice { background: #fff9db; padding: 18px; border-radius: 15px; margin: 20px 0; font-size: 1rem; border-left: 5px solid #f1c40f; text-align: left; }
+    </style>
+</head>
+<body>
+
+    <!-- MAIN MENU -->
+    <div id="screen-menu" class="container">
+        <h1 style="color:var(--primary); font-size: 2.2rem; margin-bottom: 5px;">🕒 Clock Master</h1>
+        <p style="font-size: 1.2rem;">Ready to learn the time?</p>
+        <div class="menu-grid">
+            <button class="full-btn" onclick="startGame(0, true)">🏆 FULL PROGRAM<br><small>(Earn your certificate)</small></button>
+            <button onclick="startGame(1)">Level 1: Hours</button>
+            <button onclick="startGame(2)">Level 2: Half Hours</button>
+            <button onclick="startGame(3)">Level 3: Quarters</button>
+            <button onclick="startGame(4)">Level 4: Ten Past/To</button>
+            <button onclick="startGame(5)">Level 5: Five Past/To</button>
+            <button onclick="startGame(6)">Level 6: Digital Reading</button>
+            <button onclick="startGame(7)">Level 7: Pro Challenge</button>
+        </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="screen-game" class="container hidden">
+        <div style="display:flex; justify-content: space-between; align-items:center;">
+            <button class="back-btn" onclick="location.reload()" style="padding:8px 15px;">⬅ Menu</button>
+            <span id="lvl-name" style="font-weight:bold; color:var(--primary)">Level</span>
+        </div>
+        
+        <div class="stats">Correct: <span id="stat-correct" style="color:var(--correct)">0</span> | Wrong: <span id="stat-wrong" style="color:var(--wrong)">0</span></div>
+        <div class="progress-container" id="progress-bar"></div>
+        
+        <div id="clock-container">
+            <div class="dot"></div>
+            <div id="hour-hand" class="hand hour-hand"></div>
+            <div id="min-hand" class="hand min-hand"></div>
+        </div>
+
+        <div id="digital-display">00:00</div>
+        <p style="font-weight: bold; margin-bottom: 0;">What time is it?</p>
+        <div class="options" id="options"></div>
+        <div id="feedback" style="height:40px; margin-top:15px; font-weight:bold; font-size: 1.2rem;"></div>
+    </div>
+
+    <!-- RESULT / CERTIFICATE SCREEN -->
+    <div id="screen-result" class="container hidden">
+        <div id="res-content" class="result-box">
+            <h1 id="res-title">Results</h1>
+            <div style="font-size:5rem;" id="res-icon">⭐</div>
+            <h2 id="res-grade">Rank: Clock Hero</h2>
+            <p id="res-score" style="font-size: 1.2rem;">Score: X / Y</p>
+            <div id="res-advice" class="advice"></div>
+            <button onclick="location.reload()" class="full-btn">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        let isFull = false;
+        let curLvl = 1;
+        let curEx = 0;
+        let totalCorrect = 0;
+        let totalWrong = 0;
+        let lvlMistakes = {}; 
+        let currentCorrectStr = "";
+
+        const wordMapCap = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"];
+
+        const levels = [
+            { id: 1, n: "Level 1: Full Hours", m: [0] },
+            { id: 2, n: "Level 2: Half Hours", m: [30] },
+            { id: 3, n: "Level 3: Quarter Past/To", m: [15, 45] },
+            { id: 4, n: "Level 4: Ten Past/To", m: [10, 50] },
+            { id: 5, n: "Level 5: Five Past/To", m: [5, 55] },
+            { id: 6, n: "Level 6: Reading Digital", m: [0, 15, 30, 45], mode: 'text' },
+            { id: 7, n: "Level 7: The Final Challenge", m: [0, 5, 10, 15, 30, 45, 50, 55], mode: 'final' }
+        ];
+
+        // Initialize Clock Numbers
+        const clockUI = document.getElementById('clock-container');
+        for(let i=1; i<=12; i++) {
+            const el = document.createElement('div'); el.className = 'number'; el.innerText = i;
+            const a = i * 30 * (Math.PI/180);
+            el.style.left = (115 + 90 * Math.sin(a) - 10) + 'px'; el.style.top = (115 - 90 * Math.cos(a) - 12) + 'px';
+            clockUI.appendChild(el);
+        }
+
+        function startGame(lvl, full = false) {
+            isFull = full;
+            curLvl = full ? 1 : lvl;
+            curEx = 0; totalCorrect = 0; totalWrong = 0; lvlMistakes = {};
+            document.getElementById('screen-menu').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            buildProgressBar();
+            loadExercise();
+        }
+
+        function buildProgressBar() {
+            const bar = document.getElementById('progress-bar');
+            bar.innerHTML = "";
+            const count = isFull ? (7 * 12) : 12; 
+            for(let i=0; i<count; i++) {
+                const seg = document.createElement('div');
+                seg.className = 'progress-segment';
+                seg.id = 'seg-' + i;
+                bar.appendChild(seg);
+            }
+        }
+
+        function getEnglishText(h, m) {
+            let nextH = h === 12 ? 1 : h + 1;
+            const hW = wordMapCap[h];
+            const nHW = wordMapCap[nextH];
+
+            if (m === 0) return hW + " o'clock";
+            if (m === 30) return "Half past " + hW;
+            if (m === 15) return "Quarter past " + hW;
+            if (m === 45) return "Quarter to " + nHW;
+            if (m === 10) return "Ten past " + hW;
+            if (m === 50) return "Ten to " + nHW;
+            if (m === 5) return "Five past " + hW;
+            if (m === 55) return "Five to " + nHW;
+            return h + ":" + m;
+        }
+
+        function loadExercise() {
+            const data = levels[curLvl-1];
+            document.getElementById('lvl-name').innerText = data.n;
+            document.getElementById('feedback').innerText = "";
+
+            let h = Math.floor(Math.random() * 12) + 1;
+            let m = data.m[Math.floor(Math.random() * data.m.length)];
+
+            // Update Hands
+            const hDeg = (h * 30) + (m * 0.5);
+            const mDeg = m * 6;
+            document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hDeg}deg)`;
+            document.getElementById('min-hand').style.transform = `translateX(-50%) rotate(${mDeg}deg)`;
+            
+            const digi = document.getElementById('digital-display');
+            const digiStr = h.toString().padStart(2, '0') + ":" + m.toString().padStart(2, '0');
+            digi.innerText = digiStr;
+
+            // Visibility
+            document.getElementById('clock-container').classList.toggle('hidden', data.mode === 'text');
+            digi.classList.toggle('hidden', data.mode === 'final');
+
+            // Answer logic
+            let correct = (data.mode === 'final') ? digiStr : getEnglishText(h, m);
+            currentCorrectStr = correct;
+
+            let choices = [correct];
+            while(choices.length < 4) {
+                let rh = Math.floor(Math.random() * 12) + 1;
+                let rm = data.m[Math.floor(Math.random() * data.m.length)];
+                let rc = (data.mode === 'final') ? 
+                    rh.toString().padStart(2, '0') + ":" + rm.toString().padStart(2, '0') : 
+                    getEnglishText(rh, rm);
+                if(!choices.includes(rc)) choices.push(rc);
+            }
+            choices.sort(() => Math.random() - 0.5);
+
+            const optDiv = document.getElementById('options');
+            optDiv.innerHTML = "";
+            choices.forEach(c => {
+                const btn = document.createElement('button');
+                btn.innerText = c;
+                btn.onclick = () => checkAnswer(c);
+                optDiv.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(ans) {
+            const isCorrect = (ans === currentCorrectStr);
+            const segID = isFull ? ((curLvl-1)*12 + curEx) : curEx;
+            const seg = document.getElementById('seg-' + segID);
+            
+            if(isCorrect) {
+                totalCorrect++;
+                seg.style.background = "var(--correct)";
+                document.getElementById('feedback').innerHTML = "✨ Excellent!";
+                document.getElementById('feedback').style.color = "var(--correct)";
+                celebrate();
+            } else {
+                totalWrong++;
+                lvlMistakes[curLvl] = (lvlMistakes[curLvl] || 0) + 1;
+                seg.style.background = "var(--wrong)";
+                document.getElementById('feedback').innerHTML = "❌ It is " + currentCorrectStr;
+                document.getElementById('feedback').style.color = "var(--wrong)";
+            }
+
+            document.getElementById('stat-correct').innerText = totalCorrect;
+            document.getElementById('stat-wrong').innerText = totalWrong;
+
+            curEx++;
+            if(curEx >= 12) {
+                if(isFull && curLvl < 7) {
+                    curLvl++; curEx = 0;
+                    setTimeout(loadExercise, 1500);
+                } else {
+                    setTimeout(finishGame, 1500);
+                }
+            } else {
+                setTimeout(loadExercise, 1200);
+            }
+        }
+
+        function finishGame() {
+            document.getElementById('screen-game').classList.add('hidden');
+            const res = document.getElementById('screen-result');
+            res.classList.remove('hidden');
+
+            const total = isFull ? (7 * 12) : 12;
+            const ratio = totalCorrect / total;
+            let grade = "";
+            let icon = "⭐";
+            let advice = "<b>Tips for you:</b><br>";
+
+            if(ratio >= 1.0) { grade = "Rank: Grandmaster!"; icon = "👑"; }
+            else if(ratio >= 0.85) { grade = "Rank: Clock Hero"; icon = "🏆"; }
+            else if(ratio >= 0.70) { grade = "Rank: Time Explorer"; icon = "🌟"; }
+            else if(ratio >= 0.50) { grade = "Rank: Apprentice"; icon = "👍"; }
+            else { grade = "Keep Practicing!"; icon = "📖"; }
+
+            // Advice Logic
+            let hasAdvice = false;
+            if(lvlMistakes[3] > 3) { advice += "• Remember: 'Quarter Past' is like 1/4 of a cake eaten. 'Quarter To' means 1/4 left!<br>"; hasAdvice = true; }
+            if(lvlMistakes[4] > 3 || lvlMistakes[5] > 3) { advice += "• If the big hand is on the left side, we say 'To' the next hour!<br>"; hasAdvice = true; }
+            if(lvlMistakes[6] > 3 || lvlMistakes[7] > 3) { advice += "• For digital clocks, the first number is the Hour and the second is the Minutes.<br>"; hasAdvice = true; }
+            
+            if(!hasAdvice && ratio > 0.5) advice = "You have a great sense of time! You really know your way around the clock face.";
+            if(ratio < 0.5) advice = "Don't give up! Telling time takes practice. Try starting with Level 1 and 2 again to build your confidence.";
+
+            document.getElementById('res-grade').innerText = grade;
+            document.getElementById('res-score').innerText = `You got ${totalCorrect} out of ${total} correct!`;
+            document.getElementById('res-icon').innerText = icon;
+            document.getElementById('res-advice').innerHTML = advice;
+
+            if(isFull && ratio < 0.5) {
+                document.getElementById('res-title').innerText = "Nice Try!";
+                document.getElementById('res-title').style.color = "orange";
+            } else if (isFull) {
+                document.getElementById('res-title').innerText = "OFFICIAL CERTIFICATE";
+                document.getElementById('res-title').style.color = "#d4af37";
+                celebrate(); celebrate();
+            }
+        }
+
+        function celebrate() {
+            for(let i=0; i<15; i++) {
+                const conf = document.createElement('div');
+                conf.innerText = ['⭐','🎈','✨','🎉'][Math.floor(Math.random()*4)];
+                conf.style.position = 'fixed';
+                conf.style.left = Math.random()*100+'vw';
+                conf.style.top = '100vh';
+                conf.style.fontSize = '2rem';
+                conf.style.zIndex = '1000';
+                document.body.appendChild(conf);
+                conf.animate([
+                    { transform: 'translateY(0)', opacity: 1 },
+                    { transform: 'translateY(-110vh) rotate(360deg)', opacity: 0 }
+                ], { duration: 2000 }).onfinish = () => conf.remove();
+            }
+        }
+    </script>
+</body>
+</html>
